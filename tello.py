@@ -161,7 +161,22 @@ class Drone():
         """
         if degrees <= 3600 and degrees >= 1:
             self.send_packet('ccw ' + str(degrees))
+
+    def set_speed(self, speed: int):
+        """
+        sets the speed at which the drone travels in cm/s
+        must be between 10 and 100 cm/s
+        """
+        if speed <= 100 and speed >= 10:
+            self.send_packet('speed ' + str(speed))
     
-    def speed(self, speed: int):
-        self.send_packet('speed ' + str(speed))
-    
+    def goto(self, x: int, y: int, z: int, speed: int):
+        """
+        goes to the given position in the x, y, z, planes with the given speed
+        x, y, z must be between 20 and 500 cm
+        speed must be between 10 and 100 cm/s 
+        """
+        if x <= 500 and x >= 20 and y <= 500 and y >= 20 and z <= 500 and z >= 20:
+            if speed <= 100 and speed >= 10:
+                self.send_packet('go {} {} {} {}'.format(x, y, z, speed))
+

@@ -5,7 +5,7 @@ import cv2
 import PIL
 from dronevision import DroneVideoCapture
 from drone import new_drone
-from keys import init, getkeyinp
+from inputs import get_gamepad
 
 # define application space
 class App:
@@ -18,16 +18,21 @@ class App:
         self.canvas = tk.Canvas(window, width=self.vid.width, height=self.vid.height)
         self.canvas.pack()
         self.delay = 15
+
+        # Start Video Thread
         self.vid_thread = threading.Thread(target=self.update_video)
         self.vid_thread.start()
-        self.btn_snapshot=tk.Button(window, text="Drive w/ Keyboard", width=50, command=self.enter_keyboard_control)
+
+        # Start Control Thread
+        self.control_thread = threading.Thread(target=self.joystick_control_loop)
+        self.control_thread.start()
+
+        # Quit Button
+        self.btn_snapshot=tk.Button(window, text="Quit", width=50, command=self.toggle_running)
         self.btn_snapshot.pack(anchor=tk.CENTER, expand=True)
-        self.btn_takeoff=tk.Button(window, text="Takeoff", width=50, command=self.drone.takeoff)
-        self.btn_takeoff.pack(anchor=tk.CENTER, expand=True)
-        self.btn_land=tk.Button(window, text="Land Drone", width=50, command=self.drone.land)
-        self.btn_land.pack(anchor=tk.CENTER, expand=True)
-        self.btn_estop=tk.Button(window, text="Emergency Stop", width=50, command=self.drone.emergency)
-        self.btn_estop.pack(anchor=tk.CENTER, expand=True)
+        self.run = True
+
+        # Run Loop in Main Thread
         self.window.mainloop()
 
     def update_video(self):
@@ -37,15 +42,16 @@ class App:
             self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
         self.window.after(self.delay, self.update_video)
 
-    def enter_keyboard_control(self):
-        init()
-        self.drive_thread = threading.Thread(target=self.keyboard_control_loop)
-        self.drive_thread.start()
+    def toggle_running(self):
+        self.run = not self.run
 
-    def keyboard_control_loop(self):
-        while True:
+    def joystick_control_loop(self):
+        while self.run:
             inp = getkeyinp()
             self.drone.send_rc_control(inp[0], inp[1], inp[2], inp[3])
+
+    def __del__(self):
+        return
 
 drone = new_drone()
 App(tk.Tk(), 'Tello Drone Controller', drone)

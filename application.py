@@ -3,9 +3,9 @@ import tkinter as tk
 import threading
 import cv2
 import PIL
+import gamepad as gp
 from dronevision import DroneVideoCapture
 from drone import new_drone
-from inputs import get_gamepad
 
 # define application space
 class App:
@@ -47,44 +47,7 @@ class App:
         self.run = not self.run
 
     def joystick_control_loop(self):
-        fwd_rev = 0
-        left_right = 0
-        up_down = 0
-        rot = 0
-        while self.run:
-            events = get_gamepad()
-            for event in events:
-                if not event.ev_type == 'Sync':
-                    print('EVENT: {} | {} | {}'.format(event.ev_type, event.code, event.state))
-                    if event.code == 'ABS_Y':
-                        fwd_rev = self.scale_js(event.state)
-                    if event.code == 'ABS_X':
-                        left_right = self.scale_js(event.state)
-                    if event.code == 'ABS_RY':
-                        up_down = self.scale_js(event.state)
-                    if event.code == 'ABS_RX':
-                        rot = self.scale_js(event.state)
-                    if event.code == 'BTN_START':
-                        if event.state == 1:
-                            self.fly = not self.fly
-                            if self.fly:
-                                self.drone.takeoff()
-                            else:
-                                self.drone.land()
-                    if event.code == 'BTN_TR' and event.state == 1:
-                        self.drone.flip_right()
-                    if event.code == 'BTN_TL' and event.state == 1:
-                        self.drone.flip_left()
-
-            if self.fly:            
-                self.drone.send_rc_control(left_right, fwd_rev, up_down, rot)
-
-    def scale_js(self, val):
-        max = 100
-        min = 0
-        sign = -1 if val < 0 else 1
-        val = abs(val) % ( max - min + 1) + min
-        return val * sign
+        gp.joystick_control_loop(self)
 
     def __del__(self):
         return

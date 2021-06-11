@@ -76,3 +76,4 @@ class App:
         return
 
 App(new_drone())
+

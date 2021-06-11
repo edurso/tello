@@ -14,15 +14,15 @@ class App:
     
     def __init__(self, drone: Tello):
         self.drone = drone
-        threading.Thread(target=self.video).start()
+        threading.Thread(target=lambda: self.video(drone)).start()
         self.run = True
 
         # Start Control Loop
         self.joystick_control_loop()
 
 
-    def video(self):
-        self.vid = DroneVideoCapture(self.drone)
+    def video(self, drone: Tello):
+        self.vid = DroneVideoCapture(drone)
         ret, frame = self.vid.get_frame()
         while ret and self.run:
             cv2.imshow('Tello Drone Control', frame)  
